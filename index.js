@@ -1,4 +1,4 @@
-//Dependencias Express, HTTPS y FileSystem
+//Dependencias Express, HTTPS y FileSystem (para el servidor)
 const express = require('express');
 const https = require('https');
 const fs = require('fs');
@@ -15,6 +15,16 @@ var app = express();
 var server = https.createServer(options, app);
 server.listen(port, () => {
     console.log("Servidor iniciado en el puerto : " + port)
+});
+
+//Dependencias Firebase (para auth)
+var admin = require('firebase-admin');
+
+//Inicializar Firebase
+var serviceAccount = require("./credentials/garagedoor-8a391.json");
+admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+    databaseURL: "https://garagedoor-8a391.firebaseio.com"
 });
 
 //Rutas
