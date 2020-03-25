@@ -1,0 +1,16 @@
+{
+  "name": "rpi-garagedoor",
+  "version": "1.0.0",
+  "description": "node server for handling requests to open a garage door",
+  "main": "index.js",
+  "dependencies": {
+    "express": "^4.17.1",
+    "file-system": "^2.2.2"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Sergio Herrero Sanz",
+  "license": "GPL-3.0-or-later"
+}
