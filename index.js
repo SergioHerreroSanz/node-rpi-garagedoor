@@ -13,6 +13,7 @@ const options = {
 //Crear servidor HTTPS e iniciarlo
 var app = express();
 var server = https.createServer(options, app);
+app.use(express.json());
 server.listen(port, () => {
     console.log("Servidor iniciado en el puerto : " + port)
 });
@@ -21,20 +22,21 @@ server.listen(port, () => {
 var admin = require('firebase-admin');
 
 //Inicializar Firebase
-var serviceAccount = require("./credentials/garagedoor-8a391.json");
+var serviceAccount = require("./credentials/garagedoor-3e5d1.json");
 admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
-    databaseURL: "https://garagedoor-8a391.firebaseio.com"
+    databaseURL: "https://garagedoor-3e5d1.firebaseio.com"
 });
 
 //Rutas
-app.get('/', function (req, res) {
-    //res.status(200).json({ message: "Connected!" });
-    console.log('conexion!');
-    res.send('Connected!');
+app.post('/open', function (req, res) {
+    var token = req.body.token;
+    var user = admin.auth().getUser(token);
+    res.status(200).json({ message: "Connected " + token + "!" });
+    console.log(token);
 });
 
 app.get('/status', function (req, res) {
     res.status(200).json({ message: "active" });
-    console.log('/status');
+    console.log('status');
 });
