@@ -32,11 +32,36 @@ admin.initializeApp({
 app.post('/open', function (req, res) {
     var token = req.body.token;
     var user = admin.auth().getUser(token);
-    res.status(200).json({ message: "Connected " + token + "!" });
+
     console.log(token);
+
+    Promise.all([user]).then(([user]) => {
+        const payload = {
+            customClaims: user.customClaims,
+            disabled: user.disabled,
+            displayName: user.displayName,
+            email: user.email,
+            emailVerified: user.emailVerified,
+            metadata: user.metadata,
+            multifactor: user.multiFactor,
+            passwordHash: user.passwordHash,
+            passwordSalt: user.passwordSalt,
+            phoneNumber: user.phoneNumber,
+            photoURL: user.photoURL,
+            providerData: user.providerData,
+            tenantId: user.tenantId,
+            tokensValidAfterTime: user.tokensValidAfterTime,
+            uid: user.uid,
+            //Borrar
+            message: "Todo ok, " + user.displayName
+        };
+
+        res.status(200).json(payload);
+        console.log(payload);
+    });
 });
 
 app.get('/status', function (req, res) {
-    res.status(200).json({ message: "active" });
+    res.status(200).json({message: "active"});
     console.log('status');
 });
