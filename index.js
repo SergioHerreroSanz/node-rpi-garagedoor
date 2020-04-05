@@ -1,67 +1,92 @@
-//Dependencias Express, HTTPS y FileSystem (para el servidor)
+//region -------------------------------SERVIDOR-------------------------------
+//Dependencias Express, HTTPS y FileSystem
 const express = require('express');
 const https = require('https');
 const fs = require('fs');
 const port = 443;
-
-//Leer certificados y almacenarlos en 'options' para el servidor
+//Inicializar servidor HTTPS
+//Leer certificados y almacenarlos en 'options'
 const options = {
-    key: fs.readFileSync('./certs/selfsigned.key'),
-    cert: fs.readFileSync('./certs/selfsigned.crt')
+    key: fs.readFileSync(__dirname + '/credentials/selfsigned.key'),
+    cert: fs.readFileSync(__dirname + '/credentials/selfsigned.crt')
 };
-
-//Crear servidor HTTPS e iniciarlo
+//Crear e inicializar servidor
 var app = express();
 var server = https.createServer(options, app);
 app.use(express.json());
 server.listen(port, () => {
     console.log("Servidor iniciado en el puerto : " + port)
 });
+//endregion
 
-//Dependencias Firebase (para auth)
+//region -----------------------------AUTENTICACION----------------------------
+//Dependencias Firebase
 var admin = require('firebase-admin');
-
 //Inicializar Firebase
-var serviceAccount = require("./credentials/garagedoor-3e5d1.json");
+var serviceAccount = require(__dirname + '/credentials/firebase.json');
 admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
     databaseURL: "https://garagedoor-3e5d1.firebaseio.com"
 });
+//endregion
 
-//Rutas
+//region ----------------------------------BD----------------------------------
+//Dependencias .env y mariadb
+require('dotenv').config({path: __dirname + '/credentials/.env'});
+const mariadb = require('mariadb');
+//Inicializar mariadb
+const pool = mariadb.createPool({
+    host: process.env.host,
+    user: process.env.username,
+    password: process.env.password,
+    database: process.env.database,
+    connectionLimit: 5
+});
+//Constantes
+const sql = "SELECT enabled FROM users WHERE email=?"
+//endregion
+
+//region ---------------------------------GPIO---------------------------------
+//endregion
+
+//region ---------------------------------RUTAS--------------------------------
 app.post('/open', function (req, res) {
     var token = req.body.token;
     var user = admin.auth().getUser(token);
 
-    console.log(token);
+    user.then(function (user) {
+        console.log(user.email);
 
-    Promise.all([user]).then(([user]) => {
-        const payload = {
-            customClaims: user.customClaims,
-            disabled: user.disabled,
-            displayName: user.displayName,
-            email: user.email,
-            emailVerified: user.emailVerified,
-            metadata: user.metadata,
-            multifactor: user.multiFactor,
-            passwordHash: user.passwordHash,
-            passwordSalt: user.passwordSalt,
-            phoneNumber: user.phoneNumber,
-            photoURL: user.photoURL,
-            providerData: user.providerData,
-            tenantId: user.tenantId,
-            tokensValidAfterTime: user.tokensValidAfterTime,
-            uid: user.uid,
-            //Borrar
-            message: "Todo ok, " + user.displayName
-        };
-
-        res.status(200).json(payload);
-        console.log(payload);
-    });
+        pool.getConnection()
+            .then(conn => {
+                conn.query(sql, user.email)
+                    .then((result) => {
+                        console.log(result);
+                        var enabled = result[0].enabled;
+                        if (enabled) {
+                            res.status(200).json({message: 'Success'});
+                        }
+                        conn.end();
+                    })
+                    .catch(err => {
+                        console.log(err);
+                        conn.end();
+                    })
+            }).catch(err => {
+            console.log("No se pudo conectar a la BD");
+        });
+    })
 });
 
 app.get('/status', function (req, res) {
     res.status(200).json({message: "active"});
     console.log('status');
 });
+//endregion
+
+//region -------------------------------FUNCIONES------------------------------
+function abrirPuerta() {
+
+}
+
+//endregion
