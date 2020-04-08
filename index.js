@@ -47,6 +47,14 @@ const sql = "SELECT enabled FROM users WHERE email=?"
 //endregion
 
 //region ---------------------------------GPIO---------------------------------
+var gpio = require("gpio");
+var puerta = gpio.export(4, {
+    direction: gpio.DIRECTION.OUT,
+    interval: 200,
+    ready: function () {
+        cerrarPuerta();
+    }
+});
 //endregion
 
 //region ---------------------------------RUTAS--------------------------------
@@ -64,6 +72,7 @@ app.post('/open', function (req, res) {
                         console.log(result);
                         var enabled = result[0].enabled;
                         if (enabled) {
+                            abrirPuerta();
                             res.status(200).json({message: 'Success'});
                         }
                         conn.end();
@@ -86,7 +95,12 @@ app.get('/status', function (req, res) {
 
 //region -------------------------------FUNCIONES------------------------------
 function abrirPuerta() {
+    puerta.set();
+    setTimeout(cerrarPuerta, 500);
+}
 
+function cerrarPuerta() {
+    puerta.reset();
 }
 
 //endregion
