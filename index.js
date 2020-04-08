@@ -47,10 +47,6 @@ const sql = "SELECT enabled FROM users WHERE email=?"
 //endregion
 
 //region ---------------------------------GPIO---------------------------------
-var rpio = require('rpio');
-const rpioPin = 7;
-rpio.open(rpioPin, rpio.OUTPUT, rpio.LOW);
-rpio.open(22, rpio.OUTPUT, rpio.HIGH);
 //endregion
 
 //region ---------------------------------RUTAS--------------------------------
@@ -68,7 +64,6 @@ app.post('/open', function (req, res) {
                         console.log(result);
                         var enabled = result[0].enabled;
                         if (enabled) {
-                            abrirPuerta();
                             res.status(200).json({message: 'Success'});
                         }
                         conn.end();
@@ -91,12 +86,7 @@ app.get('/status', function (req, res) {
 
 //region -------------------------------FUNCIONES------------------------------
 function abrirPuerta() {
-    rpio.write(rpioPin, rpio.HIGH);
-    setTimeout(cerrarPuerta, 1000);
-}
 
-function cerrarPuerta() {
-    rpio.write(rpioPin, rpio.LOW);
 }
 
 //endregion
