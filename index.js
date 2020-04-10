@@ -43,7 +43,9 @@ const pool = mariadb.createPool({
     connectionLimit: 5
 });
 //Constantes
-const sql = "SELECT enabled FROM users WHERE email=?"
+const select = "SELECT enabled FROM users WHERE email=?";
+const insertUser = "INSERT INTO users (email, enabled) VALUES (?, 0)";
+const insertConnection = "INSERT INTO connections (email, date, authorised) VALUES (?, NOW(), ?)";
 //endregion
 
 //region ---------------------------------GPIO---------------------------------
@@ -61,30 +63,43 @@ var puerta = gpio.export(4, {
 app.post('/open', function (req, res) {
     var token = req.body.token;
     var user = admin.auth().getUser(token);
+    var email;
+    var enabled;
 
     user.then(function (user) {
-        console.log(user.email);
+        email = user.email;
 
         pool.getConnection()
             .then(conn => {
-                conn.query(sql, user.email)
-                    .then((result) => {
-                        console.log(result);
-                        var enabled = result[0].enabled;
+                console.log('--------------------');
+                console.log('Email: ' + email);
+                conn.query(select, email)
+                    .then(result => {
+                        enabled = result[0].enabled;
+                        console.log('Autorizado: ' + enabled);
                         if (enabled) {
                             abrirPuerta();
                             res.status(200).json({message: 'Success'});
+                        } else {
+                            res.status(200).json({message: 'Not authosised'});
                         }
-                        conn.end();
                     })
                     .catch(err => {
-                        console.log(err);
-                        conn.end();
+                        console.log('No registrado en la BD');
+                        res.status(200).json({message: 'Not registered'});
+                        conn.query(insertUser, email);
+                        enabled = 0
                     })
-            }).catch(err => {
-            console.log("No se pudo conectar a la BD");
-        });
-    })
+                    .finally(() => {
+                        conn.query(insertConnection, [email, enabled]);
+                        conn.end();
+                    });
+            })
+            .catch(err => {
+                console.log('No se pudo conectar a la BD');
+                res.status(200).json({message: 'Error'});
+            });
+    });
 });
 
 app.get('/status', function (req, res) {
