@@ -46,6 +46,9 @@ const pool = mariadb.createPool({
 const select = "SELECT enabled FROM users WHERE email=?";
 const insertUser = "INSERT INTO users (email, enabled) VALUES (?, 0)";
 const insertConnection = "INSERT INTO connections (email, date, authorised) VALUES (?, NOW(), ?)";
+const checkPermissions = "CALL checkPermissions()";
+//Mandar orden de comprobación de los permisos a la BD y programar la siguiente a las 23:59
+setTimeout(comprobarPermisosBD, 10000);
 //endregion
 
 //region ---------------------------------GPIO---------------------------------
@@ -81,7 +84,7 @@ app.post('/open', function (req, res) {
                             abrirPuerta();
                             res.status(200).json({message: 'Success'});
                         } else {
-                            res.status(200).json({message: 'Not authosised'});
+                            res.status(200).json({message: 'Not authorised'});
                         }
                     })
                     .catch(err => {
@@ -118,4 +121,26 @@ function cerrarPuerta() {
     puerta.reset();
 }
 
+function millisHastaMedianoche() {
+    var ahora = new Date();
+    var noche = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate(), 23, 59, 0);
+    var tiempo = noche.getTime() - ahora.getTime();
+    return tiempo;
+}
+
+function comprobarPermisosBD() {
+    console.log('--------------------');
+    console.log('Checking DB permissions')
+    pool.getConnection()
+        .then(conn => {
+            conn.query(checkPermissions);
+            conn.close();
+        })
+        .catch(err => {
+                console.log(err);
+            }
+        );
+
+    return setTimeout(comprobarPermisosBD, millisHastaMedianoche());
+}
 //endregion
