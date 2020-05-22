@@ -1,0 +1,47 @@
+classDiagram
+
+class MainActivity{
+  + FragmentManager fragmentManager
+  # onCreate(savedInstanceState)
+  + onCreateOptionsMenu(menu) boolean
+  + onOptionsItemSelected(item) boolean
+}
+
+class SingInFragment{
+  - FirebaseAuth mFirebaseAuth
+  - FirebaseUser mFirebaseUser
+  - GoogleApiClient mGoogleApiClient
+  - Context Context
+  - FragmentActivity Activity
+  - int RC_SING_IN
+  + SingInFragment()
+  + onCreateView(inflater, container,savedInstanceState) View
+  + onAvtivityResult(requestCode, resultCode, data)
+  - firebaseAuthWithGoogle
+  - signIn()
+  - signOut()
+}
+
+class ActionsFragment{
+  - FirebaseUser FirebaseUser
+  - View View
+  + ActionsFragment(mFirebaseUser)
+  + onCreateView(inflater, container,savedInstanceState) View
+  + isNetworkAvaliable() boolean
+  - parsearJSON(devuelto)
+}
+
+class DescargarImagen{
+  # onPreExecute()
+  # doInBackground(params) Bitmap
+  # onPostExecute(result)
+}
+
+class MySingleton{
+  - MySingleton singleton
+  - RequestQueue requestQueue
+  - Context ContextMySingleton(context)
+  ~ getInstance(context) MySingleton
+  - getRequestQueue() requestQueue
+  ~ addToRequestQueue(req)
+}

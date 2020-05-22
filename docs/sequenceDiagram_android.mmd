@@ -1,0 +1,35 @@
+sequenceDiagram
+participant user as Usuario
+    participant main as MainActivity
+    participant singin as SingInFragment
+    participant actions as ActionsFragment
+    participant singleton as MySingleton
+    participant descargar as DescargarImagen
+    main->>singin: Cargar el fragmento
+    activate singin
+    user->>singin:Presionar boton "Iniciar sesión"
+    singin->>singin: singIn()
+    alt Inicio satisfactorio
+      main->>actions: Cargar ActionsFragment
+      deactivate singin
+      activate actions
+      actions->>actions: Mostrar mensaje de bienvenida personalizado
+      actions->>descargar: Obtener imagen de perfil
+      activate descargar
+      descargar->>singleton: Obtener cola de peticiones de Volley
+      activate singleton
+      singleton-->>descargar: Devolver cola de peticiones de Volley
+      deactivate singleton
+      descargar->>descargar: Obtener imagen a través de Volley
+      descargar-->>actions: Mostrar imagen de perfil
+      deactivate descargar
+      user->>actions:Presionar boton "Abrir puerta"
+      actions->>singleton: Obtener cola de peticiones de Volley
+      activate singleton
+      singleton-->>actions: Devolver cola de peticiones de Volley
+      deactivate singleton
+      actions->>actions: Realizar petición al servidor a través de Volley
+      actions->>actions: Mostrar respuesta del servidor
+      deactivate actions
+    else Inicio incorrecto
+    end

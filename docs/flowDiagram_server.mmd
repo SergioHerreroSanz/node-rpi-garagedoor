@@ -1,0 +1,13 @@
+graph TD
+reg_cnx(Registrar conexión)
+
+ini((Inicio))-->obt_tok(Obtener token)-->tk_val{"¿Token obtenido?"}--Si-->obt_usu(Obtener usuario de Firebase)-->us_obt{"¿Usuario obtenido?"}--Si-->comp_bd(Comprobar usuario en la bd)-->perm_bd{"Resultados de la bd"}
+
+us_obt--No-->msg_err(Devolver mensaje 'Error')-->fin
+tk_val--No-->msg_err
+
+perm_bd--Tiene permiso-->abrir(Abrir puerta)-->msg_succ(Devolver mensaje 'Success')-->reg_cnx
+perm_bd--No tiene permiso-->msg_nauth(Devolver mensaje 'Not authorised')-->reg_cnx
+perm_bd--No registrado-->alta(Dar de alta en la bd sin permisos)-->msg_nreg(Devolver mensaje 'Not registered')-->reg_cnx
+
+reg_cnx-->fin((Fin))
